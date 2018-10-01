@@ -31,11 +31,16 @@ Complete la tabla:
 
 | Integrante | github nick |
 |------------|-------------|
-|            |             |
+| Ivan Dario Gonzalez Collazos | ivdgonzalezco |
+| Cristian Andres Garcia Prieto | crigar |
 
 ## Discusión
 
-Describa los resultados obtenidos. En el caso de anti-aliasing describir las técnicas exploradas, citando las referencias.
+La rasterización de puntos se hizo a partir de la guía presentada en el primer enlace, donde se implemento la función *edge* y con ella se determinaron que puntos estaban dentro del area del triángulo. Además, se hizo uso de la interpretación de las coordenadas baricentricas para el color para poder dare a cada pixel (un rectángulo) el color con la tonalidad deseada, teniendo cada vertice el color primario (RGB). 
+
+Este es el resultado:
+
+![Resultados](raster_ws/image/result.jpg)
 
 ## Entrega
 

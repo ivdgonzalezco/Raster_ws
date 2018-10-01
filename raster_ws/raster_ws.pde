@@ -3,6 +3,11 @@ import frames.primitives.*;
 import frames.core.*;
 import frames.processing.*;
 
+ArrayList<Point> dots = new ArrayList<Point>();
+ArrayList<Float> red = new ArrayList<Float>(); 
+ArrayList<Float> green = new ArrayList<Float>();
+ArrayList<Float> blue = new ArrayList<Float>();
+
 // 1. Frames' objects
 Scene scene;
 Frame frame;
@@ -22,8 +27,9 @@ boolean debug = true;
 String renderer = P3D;
 
 void setup() {
+  rectMode(CORNER);
   //use 2^n to change the dimensions
-  size(1024, 1024, renderer);
+  size(700, 700, renderer);
   scene = new Scene(this);
   if (scene.is3D())
     scene.setType(Scene.Type.ORTHOGRAPHIC);
@@ -71,6 +77,10 @@ void draw() {
   popMatrix();
 }
 
+float edgeFun(Vector a, Vector b, Vector c){
+  return (c.x() - a.x()) * (b.y() - a.y()) - (c.y() - a.y()) * (b.x() - a.x()); 
+}
+
 // Implement this function to rasterize the triangle.
 // Coordinates are given in the frame system which has a dimension of 2^n
 void triangleRaster() {
@@ -80,11 +90,48 @@ void triangleRaster() {
     pushStyle();
     stroke(255, 255, 0, 125);
     point(round(frame.location(v1).x()), round(frame.location(v1).y()));
+    point(round(frame.location(v2).x()), round(frame.location(v2).y()));
+    point(round(frame.location(v3).x()), round(frame.location(v3).y()));
+    
+    point(v1.x(), v1.y());
+    point(v2.x(), v2.y());
+    point(v3.x(), v3.y());
+
+    for(int k = (int) -pow(2,n-1); k < pow(2,n-1); k++){
+      for(int l = (int) -pow(2,n)/2; l < pow(2,n)/2; l++){
+        float xValue =  width/pow(2,n)*k;
+        float yValue =  width/pow(2,n)*l;
+        
+        Vector point = new Vector(width/pow(2,n)*k, width/pow(2,n)*l);
+      
+        float v1v2 = edgeFun(v1,v2,point);
+        float v2v3 = edgeFun(v2,v3,point);
+        float v3v1 = edgeFun(v3,v1,point);
+
+        float triangleArea = v1v2 + v2v3 + v3v1;
+        
+        float baricentric1 = v2v3/triangleArea;
+        float baricentric2 = v3v1/triangleArea;
+        float baricentric3 = v1v2/triangleArea;
+
+        if( baricentric1 > 0 && baricentric2 > 0 && baricentric3 > 0 ){
+          red.add(new Float(baricentric1*255));
+          green.add(new Float(baricentric2*255));
+          blue.add(new Float(baricentric3*255));
+          dots.add(new Point(xValue,yValue));
+        }
+      }
+    }
+
     popStyle();
   }
 }
 
 void randomizeTriangle() {
+  dots = new ArrayList<Point>();
+  red = new ArrayList<Float>(); 
+  green = new ArrayList<Float>();
+  blue = new ArrayList<Float>();
   int low = -width/2;
   int high = width/2;
   v1 = new Vector(random(low, high), random(low, high));
@@ -98,11 +145,40 @@ void drawTriangleHint() {
   strokeWeight(2);
   stroke(255, 0, 0);
   triangle(v1.x(), v1.y(), v2.x(), v2.y(), v3.x(), v3.y());
-  strokeWeight(5);
-  stroke(0, 255, 255);
+  
+  int size = 0;
+  
+  if(n == 2){
+    size = 175;
+  }else if(n == 3){
+    size = 88;
+  }else if(n == 4){
+    size = 44;
+  }else if(n == 5){
+    size = 22;
+  }else if(n == 6){
+    size = 11;
+  }else {
+    size = 6;
+  }
+  
+
+  int counter = 0;
+
+  for(Point p: dots){
+    noStroke();
+    fill(red.get(counter), green.get(counter), blue.get(counter));
+    rect(p.x(), p.y(), size, size);
+    //point(p.x(),p.y());
+    counter++;
+  }
+
+  pushStyle();
+  stroke( 255, 0, 0 );
   point(v1.x(), v1.y());
   point(v2.x(), v2.y());
   point(v3.x(), v3.y());
+  popStyle();
   popStyle();
 }
 
@@ -114,15 +190,23 @@ void keyPressed() {
   if (key == 'd')
     debug = !debug;
   if (key == '+') {
+    dots = new ArrayList<Point>();
+    red = new ArrayList<Float>(); 
+    green = new ArrayList<Float>();
+    blue = new ArrayList<Float>();
     n = n < 7 ? n+1 : 2;
     frame.setScaling(width/pow( 2, n));
   }
   if (key == '-') {
+    dots = new ArrayList<Point>();
+    red = new ArrayList<Float>(); 
+    green = new ArrayList<Float>();
+    blue = new ArrayList<Float>();
     n = n >2 ? n-1 : 7;
     frame.setScaling(width/pow( 2, n));
   }
   if (key == 'r')
-    randomizeTriangle();
+      randomizeTriangle();
   if (key == ' ')
     if (spinningTask.isActive())
       spinningTask.stop();
